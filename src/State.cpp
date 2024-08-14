@@ -36,7 +36,7 @@ bool State::ifWin() {
 	}
 	return res;
 }
-// ÏòÉÏÒÆ¶¯½ÇÉ«
+// å‘ä¸Šç§»åŠ¨è§’è‰²
 void State::up() {
 	int newcx = cx - 1;
 	int newcy = cy;
@@ -44,7 +44,7 @@ void State::up() {
 	int newcy2 = cy;
 	changLoc(newcx, newcy, newcx2, newcy2);
 }
-// ÏòÏÂÒÆ¶¯½ÇÉ«
+// å‘ä¸‹ç§»åŠ¨è§’è‰²
 void State::down() {
 	int newcx = cx + 1;
 	int newcy = cy;
@@ -52,7 +52,7 @@ void State::down() {
 	int newcy2 = cy;
 	changLoc(newcx, newcy, newcx2, newcy2);
 }
-// Ïò×óÒÆ¶¯½ÇÉ«
+// å‘å·¦ç§»åŠ¨è§’è‰²
 void State::left() {
 	int newcx = cx;
 	int newcy = cy - 1;
@@ -60,7 +60,7 @@ void State::left() {
 	int newcy2 = cy - 2;
 	changLoc(newcx, newcy, newcx2, newcy2);
 }
-// ÏòÓÒÒÆ¶¯½ÇÉ«
+// å‘å³ç§»åŠ¨è§’è‰²
 void State::right() {
 	int newcx = cx;
 	int newcy = cy + 1;
@@ -131,7 +131,7 @@ bool State::isEqual(State * tempst) {
 	// std::wcout << "true\n";
 	return true;
 }
-// ÅĞ¶ÏÒ»¸ö¸ñ×ÓÈËÊÇ·ñÄÜÍ¨¹ı
+// åˆ¤æ–­ä¸€ä¸ªæ ¼å­äººæ˜¯å¦èƒ½é€šè¿‡
 bool State::stepOn(TileType* tt, int i, int  j) {
 	if (tt[i * this->width + j] == Floor) {
 		tt[i * this->width + j] = Character;
@@ -143,7 +143,7 @@ bool State::stepOn(TileType* tt, int i, int  j) {
 	}
 	return false;
 }
-// ÀûÓÃ·ººéËã·¨£¬±ê³öÆåÅÌÉÏËùÓĞ½ÇÉ«ÄÜ¹»´ïµ½µÄµØµã¡£
+// åˆ©ç”¨æ³›æ´ªç®—æ³•ï¼Œæ ‡å‡ºæ£‹ç›˜ä¸Šæ‰€æœ‰è§’è‰²èƒ½å¤Ÿè¾¾åˆ°çš„åœ°ç‚¹ã€‚
 void State::charFloodFill() {
 	while (true) {
 		bool ifChange = false;
@@ -162,7 +162,7 @@ void State::charFloodFill() {
 		}
 	}
 }
-// ÅĞ¶ÏÒ»¸öÏä×ÓÄÜ·ñÑØ×ÅÌØ¶¨·½Ïò±»ÍÆ¶¯£¬Èç¹ûÄÜ£¬Ôò·µ»ØÍÆ¶¯ºóµÄ×´Ì¬¡£
+// åˆ¤æ–­ä¸€ä¸ªç®±å­èƒ½å¦æ²¿ç€ç‰¹å®šæ–¹å‘è¢«æ¨åŠ¨ï¼Œå¦‚æœèƒ½ï¼Œåˆ™è¿”å›æ¨åŠ¨åçš„çŠ¶æ€ã€‚
 State* State::boxPushed(int i, int j, Direction d) {
 	int newi, newj, ci, cj;
 	if (d == D_UP) {
@@ -199,7 +199,7 @@ State* State::boxPushed(int i, int j, Direction d) {
 		return nullptr;
 	}
 	State * res = clone();
-	// °ÑËùÓĞµÄCharacterÖÃÎªFloor£¬°ÑËùÓĞµÄCharacterInAidÖÃÎªAid
+	// æŠŠæ‰€æœ‰çš„Characterç½®ä¸ºFloorï¼ŒæŠŠæ‰€æœ‰çš„CharacterInAidç½®ä¸ºAid
 	for (int i = 0; i < this->height; i++) {
 		for (int j = 0; j < this->width; j++) {
 			if (res->tiles[i * this->width + j] == Character) {
@@ -232,38 +232,38 @@ State* State::boxPushed(int i, int j, Direction d) {
 	return res;
 }
 
-// ¼ôÖ¦£ºÅĞ¶ÏÊÇ·ñËÀËø
+// å‰ªæï¼šåˆ¤æ–­æ˜¯å¦æ­»é”
 bool State::ifDead() {
 	bool res = false;
 	res = res || ifWallCorner();
 	res = res || ifTwoxTwo();
 	return res;
 }
-// Ç½½ÇµÄËÀËø
+// å¢™è§’çš„æ­»é”
 bool State::ifWallCorner() {
-	// µÚÒ»²½£¬½«²»¿ÉÄÜ±»½øÒ»²½ÍÆ¶¯µÄBoxinAidÖÃÎªWall
+	// ç¬¬ä¸€æ­¥ï¼Œå°†ä¸å¯èƒ½è¢«è¿›ä¸€æ­¥æ¨åŠ¨çš„BoxinAidç½®ä¸ºWall
 	bool ifchange = true;
 	while (ifchange) {
 		ifchange = false;
 		for (int i = 1; i < height - 1; i++) {
 			for (int j = 1; j < width - 1; j++) {
 				if (tiles[i * width + j] == BoxinAid){
-					// ×óÉÏ
+					// å·¦ä¸Š
 					if (tiles[i * width + j - 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
 						tiles[i * width + j] = Wall;
 						ifchange = true;
 					}
-					// ÉÏÓÒ
+					// ä¸Šå³
 					if (tiles[i * width + j + 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
 						tiles[i * width + j] = Wall;
 						ifchange = true;
 					}
-					// ÓÒÏÂ
+					// å³ä¸‹
 					if (tiles[i * width + j + 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
 						tiles[i * width + j] = Wall;
 						ifchange = true;
 					}
-					// ÏÂ×ó
+					// ä¸‹å·¦
 					if (tiles[i * width + j - 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
 						tiles[i * width + j] = Wall;
 						ifchange = true;
@@ -272,23 +272,23 @@ bool State::ifWallCorner() {
 			}
 		}
 	}
-	// µÚ¶ş²½£¬Èç¹û´æÔÚ²»ÄÜ±»½øÒ»²½±»ÍÆ¶¯µÄBox£¬Ôò·µ»Øtrue;
+	// ç¬¬äºŒæ­¥ï¼Œå¦‚æœå­˜åœ¨ä¸èƒ½è¢«è¿›ä¸€æ­¥è¢«æ¨åŠ¨çš„Boxï¼Œåˆ™è¿”å›true;
 	for (int i = 1; i < height - 1; i++) {
 		for (int j = 1; j < width - 1; j++) {
 			if (tiles[i * width + j] == Box) {
-				// ×óÉÏ
+				// å·¦ä¸Š
 				if (tiles[i * width + j - 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
 					return true;
 				}
-				// ÉÏÓÒ
+				// ä¸Šå³
 				if (tiles[i * width + j + 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
 					return true;
 				}
-				// ÓÒÏÂ
+				// å³ä¸‹
 				if (tiles[i * width + j + 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
 					return true;
 				}
-				// ÏÂ×ó
+				// ä¸‹å·¦
 				if (tiles[i * width + j - 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
 					return true;
 				}
@@ -297,7 +297,7 @@ bool State::ifWallCorner() {
 	}
 	return false;
 }
-// ÊÇ·ñ´æÔÚËÄ¸öÏä×Ó/Ç½±ÚĞÎ³ÉÒ»¸öÌï×ÖµÄÇé¿ö
+// æ˜¯å¦å­˜åœ¨å››ä¸ªç®±å­/å¢™å£å½¢æˆä¸€ä¸ªç”°å­—çš„æƒ…å†µ
 bool State::ifTwoxTwo() {
 	for (int i = 0; i < height - 1; i++) {
 		for (int j = 0; j < width - 1; j++) {

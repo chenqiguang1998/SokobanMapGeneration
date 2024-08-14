@@ -30,7 +30,7 @@ Solver::~Solver() {
 
 StateNode * Solver::addState(State * state) {
 	int code = 0;
-	// ½«Ïä×ÓÊÓÎª1£¬·ÇÏä×ÓÊÓÎª0
+	// å°†ç®±å­è§†ä¸º1ï¼Œéç®±å­è§†ä¸º0
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			if (state->tiles[i * width + j] == Box || state->tiles[i * width + j] == BoxinAid) {
@@ -45,7 +45,7 @@ StateNode * Solver::addState(State * state) {
 }
 bool Solver::ifContain(State * state) {
 	int code = 0;
-	// ½«Ïä×ÓÊÓÎª1£¬·ÇÏä×ÓÊÓÎª0
+	// å°†ç®±å­è§†ä¸º1ï¼Œéç®±å­è§†ä¸º0
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			if (state->tiles[i * width + j] == Box || state->tiles[i * width + j] == BoxinAid) {
@@ -62,7 +62,7 @@ bool Solver::ifContain(State * state) {
 	return false;
 }
 
-// ×Ô¶¯Çó½â
+// è‡ªåŠ¨æ±‚è§£
 int Solver::run() {
 	iterNum = 0;
 	while (true) {
@@ -80,7 +80,7 @@ int Solver::run() {
 		// map.drawMap(oristate);
 		
 		State * tempstate = oristate->clone();
-		// ±éÀúÆåÅÌÉÏµÄÃ¿Ò»¸öBox
+		// éå†æ£‹ç›˜ä¸Šçš„æ¯ä¸€ä¸ªBox
 		Direction alldirection[4] = {D_UP, D_DOWN, D_LEFT,  D_RIGHT};
 		for (int i = 0; i < oristate->height; i++) {
 			for (int j = 0; j < oristate->width; j++) {

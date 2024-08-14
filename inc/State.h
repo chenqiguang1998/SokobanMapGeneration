@@ -10,31 +10,31 @@ public:
 	int height;
 	int cx;
 	int cy;
-	// �ж��Ƿ��ǻ�ʤ״̬
+	// 判断是否是获胜状态
 	bool ifWin();
-	// �����ƶ���ɫ
+	// 向上移动角色
 	void up();
-	// �����ƶ���ɫ
+	// 向下移动角色
 	void down();
-	// �����ƶ���ɫ
+	// 向左移动角色
 	void left();
-	// �����ƶ���ɫ
+	// 向右移动角色
 	void right();
-	// ���Ľ�ɫλ��
+	// 更改角色位置
 	void changLoc(int newcx, int newcy, int newcx2, int newcy2);
 	State * clone();
-	// �ж�һ��state�Ƿ����Լ���tiles���
+	// 判断一个state是否与自己的tiles相等
 	bool isEqual(State * tempst);
-	// ���÷����㷨��������������н�ɫ�ܹ��ﵽ�ĵص㡣
+	// 利用泛洪算法，标出棋盘上所有角色能够达到的地点。
 	void charFloodFill();
-	// �ж�һ���������Ƿ���ͨ��������ܣ�����Ӧ��λ����Character�������
+	// 判断一个格子人是否能通过，如果能，则将相应的位置用Character进行填充
 	bool stepOn(TileType* tt, int i, int j);
-	// �ж�һ�������ܷ������ض������ƶ�������ܣ��򷵻��ƶ����״̬��
+	// 判断一个箱子能否沿着特定方向被推动，如果能，则返回推动后的状态。
 	State* boxPushed(int i, int j, Direction d);
-	// ��֦���ж��Ƿ�����
+	// 剪枝：判断是否死锁
 	bool ifDead();
-	// ǽ�ǵ�����
+	// 墙角的死锁
 	bool ifWallCorner();
-	// �Ƿ�����ĸ�����/ǽ���γ�һ�����ӵ����
+	// 是否存在四个箱子/墙壁形成一个田子的情况
 	bool ifTwoxTwo();
 };

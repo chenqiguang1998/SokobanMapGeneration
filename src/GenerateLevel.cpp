@@ -8,7 +8,7 @@ GenerateLevel::GenerateLevel(int w, int h) {
 	savedtiles = new TileType[w * h];
 	width = w;
 	height = h;
-	// ½«Ç½±ÚÎ§µØÍ¼Ò»È¦
+	// å°†å¢™å£å›´åœ°å›¾ä¸€åœˆ
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			if (i == 0 || i == height - 1 || j == 0 || j == width -1) {
@@ -19,9 +19,9 @@ GenerateLevel::GenerateLevel(int w, int h) {
 			}
 		}
 	}
-	// ÔÚµØÍ¼ÉÏËæ»úÉú³ÉÒ»¸ö½ÇÉ«µÄ³õÊ¼Î»ÖÃ
+	// åœ¨åœ°å›¾ä¸Šéšæœºç”Ÿæˆä¸€ä¸ªè§’è‰²çš„åˆå§‹ä½ç½®
 	generateChar();
-	// ±¸·İ
+	// å¤‡ä»½
 	save();
 }
 bool GenerateLevel::generateChar() {
