@@ -7,10 +7,8 @@
 #include <ctime>
 #include <unistd.h> // 用于sleep函数
 
-int main()
-{
-    // 以下注释掉的算法可以用来解一个推箱子谜题。
-    /*
+void solvePuzzle() {
+    // 初始化状态、地图和求解器
     TileType tilesample[49] = {
         Wall, Wall, Wall, Wall, Wall, Wall, Wall,
         Wall, Aid, Floor, Aid, Floor, Aid, Wall,
@@ -20,13 +18,13 @@ int main()
         Wall, Aid, Floor, Aid, Floor, Aid, Wall,
         Wall, Wall, Wall, Wall, Wall, Wall, Wall,
     };
-    TileType * tiles = new TileType[49];
+    TileType *tiles = new TileType[49];
     for (int i = 0; i < 49; i++) {
         tiles[i] = tilesample[i];
     }
-    State * state = new State(7, 7);
+    State *state = new State(7, 7);
     state->setLevel((TileType *)tiles);
-    Map * map = new Map();
+    Map *map = new Map();
     Solver solver(state);
     map->drawMap(state);
 
@@ -41,8 +39,12 @@ int main()
         std::cout << "\033[31m总共的迭代次数\033[0m" << solver.getIterNum() << "\n"; // 使用公共访问器函数
         std::cout << "\033[31m最短完成步数\033[0m" << stepnum << "\n";
     }
-    */
-    // 以下算法用来生成一个新的推箱子关卡
+
+    delete state;
+    delete map;
+}
+
+void generateLevel() {
     GenerateLevel gl(7, 7);
     TileType* tiles = gl.tiles;
 
@@ -89,29 +91,82 @@ int main()
     solver.drawStep();
     getchar();
 
-    // 以下注释掉的算法可以用来让玩家玩一局推箱子，需要给定一个关卡的初始state
-    /*
+    delete state;
+    delete map;
+}
+
+void playGame() {
+    // 初始化状态、地图和求解器
+    TileType tilesample[49] = {
+        Wall, Wall, Wall, Wall, Wall, Wall, Wall,
+        Wall, Aid, Floor, Aid, Floor, Aid, Wall,
+        Wall, Floor, Box, Box, Box, Floor, Wall,
+        Wall, Aid, Box, Character, Box, Aid, Wall,
+        Wall, Floor, Box, Box, Box, Floor, Wall,
+        Wall, Aid, Floor, Aid, Floor, Aid, Wall,
+        Wall, Wall, Wall, Wall, Wall, Wall, Wall,
+    };
+    TileType *tiles = new TileType[49];
+    for (int i = 0; i < 49; i++) {
+        tiles[i] = tilesample[i];
+    }
+    State *state = new State(7, 7);
+    state->setLevel((TileType *)tiles);
+    Map *map = new Map();
+
+    // 游戏循环
     while (!state->ifWin()) {
         map->drawMap(state);
         std::cout << "\033[1m请输入操作：w向上，s向下，a向左，d向右\033[0m\n";
         char c = getchar();
-        getchar();
+        getchar(); // 处理换行符
         if (c == 'w') {
             state->up();
         }
-        if (c == 's') {
+        else if (c == 's') {
             state->down();
         }
-        if (c == 'a') {
+        else if (c == 'a') {
             state->left();
         }
-        if (c == 'd') {
+        else if (c == 'd') {
             state->right();
         }
     }
     map->drawMap(state);
     std::cout << "\033[31m恭喜胜利！！！\033[0m\n";
-    */
+
     delete state;
     delete map;
+}
+
+int main() {
+    int choice;
+    while (true) {
+        std::cout << "请选择功能：\n";
+        std::cout << "1. 解决谜题 (solve)\n";
+        std::cout << "2. 生成新关卡 (generate)\n";
+        std::cout << "3. 玩游戏 (play)\n";
+        std::cout << "4. 退出 (q)\n";
+        std::cout << "请输入数字选择功能：";
+        std::cin >> choice;
+
+        switch (choice) {
+            case 1:
+                solvePuzzle();
+                break;
+            case 2:
+                generateLevel();
+                break;
+            case 3:
+                playGame();
+                break;
+            case 4:
+                return 0;
+            default:
+                std::cerr << "无效的命令。请使用 1 解决谜题，2 生成关卡，3 玩游戏，或 4 退出。\n";
+        }
+    }
+
+    return 0;
 }
