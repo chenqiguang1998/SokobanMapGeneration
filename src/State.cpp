@@ -1,17 +1,20 @@
 #include "State.h"
+#include <algorithm> // For std::copy and std::equal
 #include <iostream>
 
-State::State(int w, int h) : width(w), height(h), tiles(nullptr), cx(0), cy(0) {}
+// Constructor using unique_ptr
+State::State(int w, int h)
+    : width(w), height(h), tiles(std::unique_ptr<TileType[]>(new TileType[w * h])), cx(0), cy(0) {}
 
-State::~State() {
-    delete[] tiles;
-}
+// Destructor
+State::~State() = default; // Unique_ptr handles deletion
 
+// Set level
 void State::setLevel(TileType* tiles) {
-    this->tiles = tiles;
-    for (int i = 0; i < this->height; i++) {
-        for (int j = 0; j < this->width; j++) {
-            if (*(tiles + i * this->width + j) == Character) {
+    std::copy(tiles, tiles + width * height, this->tiles.get());
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            if (tiles[i * width + j] == Character) {
                 cx = j;
                 cy = i;
             }
@@ -19,246 +22,188 @@ void State::setLevel(TileType* tiles) {
     }
 }
 
-bool State::ifWin() {
-    for (int i = 0; i < this->height; i++) {
-        for (int j = 0; j < this->width; j++) {
-            if (*(tiles + i * this->width + j) == Box) {
-                return false;
-            }
+// Clone state
+State* State::clone() const {
+    State* newState = new State(width, height);
+    std::copy(tiles.get(), tiles.get() + width * height, newState->tiles.get());
+    newState->cx = cx;
+    newState->cy = cy;
+    return newState;
+}
+
+// Check equality
+bool State::isEqual(const State* tempst) const {
+    return std::equal(tiles.get(), tiles.get() + width * height, tempst->tiles.get());
+}
+
+// Check win condition
+bool State::ifWin() const {
+    for (int i = 0; i < width * height; ++i) {
+        if (tiles[i] == Box) {
+            return false;
         }
     }
     return true;
 }
 
+// Move up
 void State::up() {
-    int newcx = cx - 1;
-    int newcy = cy;
-    int newcx2 = cx - 2;
-    int newcy2 = cy;
-    changLoc(newcx, newcy, newcx2, newcy2);
+    changLoc(cx - 1, cy, cx - 2, cy);
 }
 
+// Move down
 void State::down() {
-    int newcx = cx + 1;
-    int newcy = cy;
-    int newcx2 = cx + 2;
-    int newcy2 = cy;
-    changLoc(newcx, newcy, newcx2, newcy2);
+    changLoc(cx + 1, cy, cx + 2, cy);
 }
 
+// Move left
 void State::left() {
-    int newcx = cx;
-    int newcy = cy - 1;
-    int newcx2 = cx;
-    int newcy2 = cy - 2;
-    changLoc(newcx, newcy, newcx2, newcy2);
+    changLoc(cx, cy - 1, cx, cy - 2);
 }
 
+// Move right
 void State::right() {
-    int newcx = cx;
-    int newcy = cy + 1;
-    int newcx2 = cx;
-    int newcy2 = cy + 2;
-    changLoc(newcx, newcy, newcx2, newcy2);
+    changLoc(cx, cy + 1, cx, cy + 2);
 }
 
+// Change location
 void State::changLoc(int newcx, int newcy, int newcx2, int newcy2) {
-    if (*(tiles + newcx * width + newcy) == Wall) {
-        return;
-    } else if (*(tiles + newcx * width + newcy) == Box || *(tiles + newcx * width + newcy) == BoxinAid) {
-        if (newcx2 < 0 || newcy2 < 0 || newcx2 >= width || newcy2 >= height || *(tiles + newcx2 * width + newcy2) == Wall || *(tiles + newcx2 * width + newcy2) == Box || *(tiles + newcx2 * width + newcy2) == BoxinAid) {
+    if (tiles[newcx * width + newcy] == Wall) return;
+
+    if (tiles[newcx * width + newcy] == Box || tiles[newcx * width + newcy] == BoxinAid) {
+        if (newcx2 < 0 || newcy2 < 0 || newcx2 >= height || newcy2 >= width ||
+            tiles[newcx2 * width + newcy2] == Wall ||
+            tiles[newcx2 * width + newcy2] == Box ||
+            tiles[newcx2 * width + newcy2] == BoxinAid) {
             return;
         }
-        if (*(tiles + newcx * width + newcy) == Box) {
-            *(tiles + newcx * width + newcy) = Floor;
-        } else if (*(tiles + newcx * width + newcy) == BoxinAid) {
-            *(tiles + newcx * width + newcy) = Aid;
+
+        if (tiles[newcx * width + newcy] == Box) {
+            tiles[newcx * width + newcy] = Floor;
+        } else if (tiles[newcx * width + newcy] == BoxinAid) {
+            tiles[newcx * width + newcy] = Aid;
         }
-        if (*(tiles + newcx2 * width + newcy2) == Floor) {
-            *(tiles + newcx2 * width + newcy2) = Box;
-        } else if (*(tiles + newcx2 * width + newcy2) == Aid) {
-            *(tiles + newcx2 * width + newcy2) = BoxinAid;
+
+        if (tiles[newcx2 * width + newcy2] == Floor) {
+            tiles[newcx2 * width + newcy2] = Box;
+        } else if (tiles[newcx2 * width + newcy2] == Aid) {
+            tiles[newcx2 * width + newcy2] = BoxinAid;
         }
     }
-    if (*(tiles + newcx * width + newcy) == Aid) {
-        *(tiles + newcx * width + newcy) = CharacterinAid;
-    } else {
-        *(tiles + newcx * width + newcy) = Character;
-    }
-    if (*(tiles + cx * width + cy) == CharacterinAid) {
-        *(tiles + cx * width + cy) = Aid;
-    } else {
-        *(tiles + cx * width + cy) = Floor;
-    }
+
+    tiles[cx * width + cy] = (tiles[cx * width + cy] == CharacterinAid) ? Aid : Floor;
+    tiles[newcx * width + newcy] = (tiles[newcx * width + newcy] == Aid) ? CharacterinAid : Character;
     cx = newcx;
     cy = newcy;
 }
 
-State* State::clone() {
-    State* newstate = new State(width, height);
-    newstate->tiles = new TileType[height * width];
-    for (int i = 0; i < this->height; i++) {
-        for (int j = 0; j < this->width; j++) {
-            newstate->tiles[i * this->width + j] = tiles[i * this->width + j];
-        }
-    }
-    newstate->cx = cx;
-    newstate->cy = cy;
-    return newstate;
-}
-
-bool State::isEqual(State* tempst) {
-    for (int i = 0; i < this->height; i++) {
-        for (int j = 0; j < this->width; j++) {
-            if (tempst->tiles[i * this->width + j] != tiles[i * this->width + j]) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
+// Step on tile
 bool State::stepOn(TileType* tt, int i, int j) {
-    if (tt[i * this->width + j] == Floor) {
-        tt[i * this->width + j] = Character;
+    if (tt[i * width + j] == Floor) {
+        tt[i * width + j] = Character;
         return true;
     }
-    if (tt[i * this->width + j] == Aid) {
-        tt[i * this->width + j] = CharacterinAid;
+    if (tt[i * width + j] == Aid) {
+        tt[i * width + j] = CharacterinAid;
         return true;
     }
     return false;
 }
 
+// Flood fill
 void State::charFloodFill() {
-    while (true) {
-        bool ifChange = false;
-        for (int i = 1; i < this->height - 1; i++) {
-            for (int j = 1; j < this->width - 1; j++) {
-                if (tiles[i * this->width + j] == Character || tiles[i * this->width + j] == CharacterinAid) {
-                    ifChange = ifChange || stepOn(tiles, i - 1, j);
-                    ifChange = ifChange || stepOn(tiles, i + 1, j);
-                    ifChange = ifChange || stepOn(tiles, i, j - 1);
-                    ifChange = ifChange || stepOn(tiles, i, j + 1);
+    bool ifChange;
+    do {
+        ifChange = false;
+        for (int i = 1; i < height - 1; ++i) {
+            for (int j = 1; j < width - 1; ++j) {
+                if (tiles[i * width + j] == Character || tiles[i * width + j] == CharacterinAid) {
+                    ifChange |= stepOn(tiles.get(), i - 1, j);
+                    ifChange |= stepOn(tiles.get(), i + 1, j);
+                    ifChange |= stepOn(tiles.get(), i, j - 1);
+                    ifChange |= stepOn(tiles.get(), i, j + 1);
                 }
             }
         }
-        if (!ifChange) {
-            break;
-        }
-    }
+    } while (ifChange);
 }
 
-State* State::boxPushed(int i, int j, Direction d) {
+// Box pushed
+State* State::boxPushed(int i, int j, Direction d) const {
     int newi, newj, ci, cj;
-    if (d == D_UP) {
-        newi = i - 1;
-        newj = j;
-        ci = i + 1;
-        cj = j;
+    switch (d) {
+        case D_UP:    newi = i - 1; newj = j; ci = i + 1; cj = j; break;
+        case D_DOWN:  newi = i + 1; newj = j; ci = i - 1; cj = j; break;
+        case D_LEFT:  newi = i; newj = j - 1; ci = i; cj = j + 1; break;
+        case D_RIGHT: newi = i; newj = j + 1; ci = i; cj = j - 1; break;
+        default: return nullptr;
     }
-    if (d == D_DOWN) {
-        newi = i + 1;
-        newj = j;
-        ci = i - 1;
-        cj = j;
-    }
-    if (d == D_LEFT) {
-        newi = i;
-        newj = j - 1;
-        ci = i;
-        cj = j + 1;
-    }
-    if (d == D_RIGHT) {
-        newi = i;
-        newj = j + 1;
-        ci = i;
-        cj = j - 1;
-    }
-    if (tiles[ci * width + cj] != Character && tiles[ci * width + cj] != CharacterinAid) {
-        return nullptr;
-    }
-    if (tiles[i * width + j] != Box && tiles[i * width + j] != BoxinAid) {
-        return nullptr;
-    }
-    if (tiles[newi * width + newj] == Wall || tiles[newi * width + newj] == Box || tiles[newi * width + newj] == BoxinAid) {
-        return nullptr;
-    }
+
+    if (tiles[ci * width + cj] != Character && tiles[ci * width + cj] != CharacterinAid) return nullptr;
+    if (tiles[i * width + j] != Box && tiles[i * width + j] != BoxinAid) return nullptr;
+    if (tiles[newi * width + newj] == Wall || tiles[newi * width + newj] == Box || tiles[newi * width + newj] == BoxinAid) return nullptr;
+
     State* res = clone();
-    for (int i = 0; i < this->height; i++) {
-        for (int j = 0; j < this->width; j++) {
-            if (res->tiles[i * this->width + j] == Character) {
-                res->tiles[i * this->width + j] = Floor;
-            }
-            if (res->tiles[i * this->width + j] == CharacterinAid) {
-                res->tiles[i * this->width + j] = Aid;
-            }
+
+    // Replace tiles
+    for (int k = 0; k < width * height; ++k) {
+        if (res->tiles[k] == Character) {
+            res->tiles[k] = Floor;
+        } else if (res->tiles[k] == CharacterinAid) {
+            res->tiles[k] = Aid;
         }
     }
+
     if (res->tiles[newi * width + newj] == Floor) {
         res->tiles[newi * width + newj] = Box;
     } else if (res->tiles[newi * width + newj] == Aid) {
         res->tiles[newi * width + newj] = BoxinAid;
     }
+
     if (res->tiles[i * width + j] == Box) {
         res->tiles[i * width + j] = Floor;
     } else if (res->tiles[i * width + j] == BoxinAid) {
         res->tiles[i * width + j] = Aid;
     }
-    if (res->tiles[i * width + j] == Floor) {
-        res->tiles[i * width + j] = Character;
-    } else if (res->tiles[i * width + j] == Aid) {
-        res->tiles[i * width + j] = CharacterinAid;
-    }
+
+    res->tiles[i * width + j] = (res->tiles[i * width + j] == Floor) ? Character : CharacterinAid;
     res->cx = j;
     res->cy = i;
     return res;
 }
 
-bool State::ifDead() {
+// Check if dead
+bool State::ifDead() const {
     return ifWallCorner() || ifTwoxTwo();
 }
 
-bool State::ifWallCorner() {
-    bool ifchange = true;
-    while (ifchange) {
+// Check for wall corner
+bool State::ifWallCorner() const {
+    bool ifchange;
+    do {
         ifchange = false;
-        for (int i = 1; i < height - 1; i++) {
-            for (int j = 1; j < width - 1; j++) {
+        for (int i = 1; i < height - 1; ++i) {
+            for (int j = 1; j < width - 1; ++j) {
                 if (tiles[i * width + j] == BoxinAid) {
-                    if (tiles[i * width + j - 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
-                        tiles[i * width + j] = Wall;
-                        ifchange = true;
-                    }
-                    if (tiles[i * width + j + 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
-                        tiles[i * width + j] = Wall;
-                        ifchange = true;
-                    }
-                    if (tiles[i * width + j + 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
-                        tiles[i * width + j] = Wall;
-                        ifchange = true;
-                    }
-                    if (tiles[i * width + j - 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
+                    if (tiles[i * width + j - 1] == Wall && tiles[(i - 1) * width + j] == Wall ||
+                        tiles[i * width + j + 1] == Wall && tiles[(i - 1) * width + j] == Wall ||
+                        tiles[i * width + j + 1] == Wall && tiles[(i + 1) * width + j] == Wall ||
+                        tiles[i * width + j - 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
                         tiles[i * width + j] = Wall;
                         ifchange = true;
                     }
                 }
             }
         }
-    }
-    for (int i = 1; i < height - 1; i++) {
-        for (int j = 1; j < width - 1; j++) {
+    } while (ifchange);
+
+    for (int i = 1; i < height - 1; ++i) {
+        for (int j = 1; j < width - 1; ++j) {
             if (tiles[i * width + j] == Box) {
-                if (tiles[i * width + j - 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
-                    return true;
-                }
-                if (tiles[i * width + j + 1] == Wall && tiles[(i - 1) * width + j] == Wall) {
-                    return true;
-                }
-                if (tiles[i * width + j + 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
-                    return true;
-                }
-                if (tiles[i * width + j - 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
+                if (tiles[i * width + j - 1] == Wall && tiles[(i - 1) * width + j] == Wall ||
+                    tiles[i * width + j + 1] == Wall && tiles[(i - 1) * width + j] == Wall ||
+                    tiles[i * width + j + 1] == Wall && tiles[(i + 1) * width + j] == Wall ||
+                    tiles[i * width + j - 1] == Wall && tiles[(i + 1) * width + j] == Wall) {
                     return true;
                 }
             }
@@ -267,22 +212,20 @@ bool State::ifWallCorner() {
     return false;
 }
 
-bool State::ifTwoxTwo() {
-    for (int i = 0; i < height - 1; i++) {
-        for (int j = 0; j < width - 1; j++) {
+// Check for 2x2 box pattern
+bool State::ifTwoxTwo() const {
+    for (int i = 0; i < height - 1; ++i) {
+        for (int j = 0; j < width - 1; ++j) {
             int Boxnum = 0;
             int Wallnum = 0;
             int BoxinAidnum = 0;
-            for (int ii = 0; ii < 2; ii++) {
-                for (int jj = 0; jj < 2; jj++) {
-                    if (tiles[(i + ii) * width + j + jj] == Box) {
-                        Boxnum++;
-                    }
-                    if (tiles[(i + ii) * width + j + jj] == Wall) {
-                        Wallnum++;
-                    }
-                    if (tiles[(i + ii) * width + j + jj] == BoxinAid) {
-                        BoxinAidnum++;
+            for (int ii = 0; ii < 2; ++ii) {
+                for (int jj = 0; jj < 2; ++jj) {
+                    switch (tiles[(i + ii) * width + j + jj]) {
+                        case Box: Boxnum++; break;
+                        case Wall: Wallnum++; break;
+                        case BoxinAid: BoxinAidnum++; break;
+                        default: break;
                     }
                 }
             }
