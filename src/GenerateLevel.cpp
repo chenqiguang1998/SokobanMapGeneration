@@ -1,15 +1,25 @@
 #include "pch.h"
 #include "GenerateLevel.h"
-#include <stdlib.h>
-#include <time.h>
-#include "Map.h"
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
 
-GenerateLevel::GenerateLevel(int w, int h) {
-    tiles = new TileType[w * h];
-    savedtiles = new TileType[w * h];
-    width = w;
-    height = h;
-    // 将墙壁围地图一圈
+GenerateLevel::GenerateLevel(int w, int h) : width(w), height(h) {
+    tiles = new TileType[width * height];
+    savedtiles = new TileType[width * height];
+    initializeTiles();
+    if (!generateChar()) {
+        std::cerr << "生成角色失败\n";
+    }
+    save();
+}
+
+GenerateLevel::~GenerateLevel() {
+    delete[] tiles;
+    delete[] savedtiles;
+}
+
+void GenerateLevel::initializeTiles() {
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             if (i == 0 || i == height - 1 || j == 0 || j == width - 1) {
@@ -19,16 +29,11 @@ GenerateLevel::GenerateLevel(int w, int h) {
             }
         }
     }
-    // 在地图上随机生成一个角色的初始位置
-    generateChar();
-    // 备份
-    save();
 }
 
 bool GenerateLevel::generateChar() {
-    int gtime = 1000;
-    srand((unsigned)time(NULL) * 10);
-    while (gtime--) {
+    srand(static_cast<unsigned>(time(nullptr)));
+    for (int attempt = 0; attempt < MAX_ATTEMPTS; ++attempt) {
         int randi = rand() % height;
         int randj = rand() % width;
         if (tiles[randi * width + randj] == Floor) {
@@ -40,9 +45,8 @@ bool GenerateLevel::generateChar() {
 }
 
 bool GenerateLevel::generateBox() {
-    int gtime = 1000;
-    srand((unsigned)time(NULL) * 10);
-    while (gtime--) {
+    srand(static_cast<unsigned>(time(nullptr)));
+    for (int attempt = 0; attempt < MAX_ATTEMPTS; ++attempt) {
         int randi = rand() % height;
         int randj = rand() % width;
         if (tiles[randi * width + randj] == Floor) {
@@ -54,9 +58,8 @@ bool GenerateLevel::generateBox() {
 }
 
 bool GenerateLevel::generateWall() {
-    int gtime = 1000;
-    srand((unsigned)time(NULL) * 10);
-    while (gtime--) {
+    srand(static_cast<unsigned>(time(nullptr)));
+    for (int attempt = 0; attempt < MAX_ATTEMPTS; ++attempt) {
         int randi = rand() % height;
         int randj = rand() % width;
         if (tiles[randi * width + randj] == Floor) {
@@ -68,9 +71,8 @@ bool GenerateLevel::generateWall() {
 }
 
 bool GenerateLevel::generateAid() {
-    int gtime = 1000;
-    srand((unsigned)time(NULL) * 10);
-    while (gtime--) {
+    srand(static_cast<unsigned>(time(nullptr)));
+    for (int attempt = 0; attempt < MAX_ATTEMPTS; ++attempt) {
         int randi = rand() % height;
         int randj = rand() % width;
         if (tiles[randi * width + randj] == Floor) {
