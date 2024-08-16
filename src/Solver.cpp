@@ -2,9 +2,8 @@
 #include "Solver.h"
 #include <iostream>
 
-Solver::Solver(State* state) {
-    width = state->width;
-    height = state->height;
+// Constructor
+Solver::Solver(State* state) : width(state->width), height(state->height), iterNum(0) {
     statenodes = new StateNode*[height * width]();
     statenodesamount = new int[height * width]();
 
@@ -18,6 +17,7 @@ Solver::Solver(State* state) {
     unexploidlist.push_back(addState(newstate));
 }
 
+// Destructor
 Solver::~Solver() {
     for (int i = 0; i < height * width; ++i) {
         statenodes[i]->deleteNode();
@@ -27,6 +27,7 @@ Solver::~Solver() {
     delete[] statenodesamount;
 }
 
+// Calculate a unique code for the given state
 int Solver::calculateCode(State* state) const {
     int code = 0;
     for (int i = 0; i < height; ++i) {
@@ -39,50 +40,52 @@ int Solver::calculateCode(State* state) const {
     return code % (height * width);
 }
 
+// Add a state to the list and return the corresponding StateNode
 StateNode* Solver::addState(State* state) {
     int code = calculateCode(state);
     statenodesamount[code]++;
     return statenodes[code]->addState(state);
 }
 
+// Check if the state is already contained in the list
 bool Solver::ifContain(State* state) const {
     int code = calculateCode(state);
     return statenodes[code]->ifContain(state);
 }
 
-// 自动求解
+// Automatically solve the puzzle
 int Solver::run() {
-    iterNum = 0;
     while (!unexploidlist.empty()) {
         iterNum++;
 
-        StateNode* orisn = unexploidlist.front();
-        int depth = orisn->depth;
+        StateNode* currentNode = unexploidlist.front();
+        int depth = currentNode->depth;
         unexploidlist.pop_front();
-        State* oristate = orisn->currentstate;
+        State* currentState = currentNode->currentstate;
 
-        State* tempstate = oristate->clone();
-        Direction alldirection[4] = {D_UP, D_DOWN, D_LEFT, D_RIGHT};
-        for (int i = 0; i < oristate->height; ++i) {
-            for (int j = 0; j < oristate->width; ++j) {
-                if (tempstate->tiles[i * oristate->width + j] == Box || tempstate->tiles[i * oristate->width + j] == BoxinAid) {
-                    for (int k = 0; k < 4; ++k) {
-                        State* newstate = tempstate->boxPushed(i, j, alldirection[k]);
-                        if (newstate != nullptr) {
-                            newstate->charFloodFill();
-                            if (newstate->ifDead() || ifContain(newstate)) {
-                                delete newstate;
+        State* tempState = currentState->clone();
+        Direction directions[4] = {D_UP, D_DOWN, D_LEFT, D_RIGHT};
+
+        for (int i = 0; i < currentState->height; ++i) {
+            for (int j = 0; j < currentState->width; ++j) {
+                if (tempState->tiles[i * currentState->width + j] == Box || tempState->tiles[i * currentState->width + j] == BoxinAid) {
+                    for (Direction dir : directions) {
+                        State* newState = tempState->boxPushed(i, j, dir);
+                        if (newState) {
+                            newState->charFloodFill();
+                            if (newState->ifDead() || ifContain(newState)) {
+                                delete newState;
                             } else {
-                                StateNode* sn = addState(newstate);
-                                sn->depth = depth + 1;
-                                sn->parentstate = orisn;
-                                unexploidlist.push_back(sn);
+                                StateNode* newNode = addState(newState);
+                                newNode->depth = depth + 1;
+                                newNode->parentstate = currentNode;
+                                unexploidlist.push_back(newNode);
 
-                                if (newstate->ifWin()) {
-                                    StateNode* tempsn = sn;
-                                    while (tempsn != nullptr) {
-                                        steplist.push_front(tempsn);
-                                        tempsn = tempsn->parentstate;
+                                if (newState->ifWin()) {
+                                    StateNode* stepNode = newNode;
+                                    while (stepNode != nullptr) {
+                                        steplist.push_front(stepNode);
+                                        stepNode = stepNode->parentstate;
                                     }
                                     return 1;
                                 }
@@ -92,15 +95,15 @@ int Solver::run() {
                 }
             }
         }
-        delete tempstate;
+        delete tempState;
     }
     return -1;
 }
 
-void Solver::drawStep(){
+// Draw the steps to the map
+void Solver::drawStep() const {
     for (const auto& step : steplist) {
-        // 不能使用 const Map & 因为 map 是 Solver 的成员变量，不能在 const 成员函数中修改
         map.drawMap(step->currentstate);
-        std::cout << "\n"; // Linux 下使用 std::cout
+        std::cout << "\n";
     }
 }
