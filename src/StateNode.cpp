@@ -1,38 +1,47 @@
 #include "StateNode.h"
 
-void StateNode::deleteNode() {
-    if (nextstate != nullptr) {
-        nextstate->deleteNode();
-    }
-    if (currentstate != nullptr) {
-        delete currentstate;
-    }
-    delete nextstate;  // Add this to avoid memory leak
-    delete this;       // Add this to delete the current node
+// Constructor
+StateNode::StateNode() : currentstate(nullptr), nextstate(nullptr), parentstate(nullptr), depth(0) {}
+
+// Destructor
+StateNode::~StateNode() {
+    deleteNode(); // Ensure proper cleanup
 }
 
-bool StateNode::ifContain(State *state) {
-    if (this->currentstate != nullptr && this->currentstate->isEqual(state)) {
-        return true;
-    }
-    if (this->nextstate != nullptr) {
-        return this->nextstate->ifContain(state);
+// Function to check if the state is contained in the list
+bool StateNode::ifContain(State* state) const {
+    const StateNode* current = this;
+    while (current != nullptr) {
+        if (current->currentstate != nullptr && current->currentstate->isEqual(state)) {
+            return true;
+        }
+        current = current->nextstate;
     }
     return false;
 }
 
-StateNode *StateNode::addState(State *state) {
-    if (currentstate == nullptr) {
-        this->currentstate = state;
-        return this;
+// Function to add a new state to the list
+StateNode* StateNode::addState(State* state) {
+    StateNode* current = this;
+    while (true) {
+        if (current->currentstate == nullptr) {
+            current->currentstate = state;
+            return current;
+        } else if (current->nextstate == nullptr) {
+            current->nextstate = new StateNode();
+            current->nextstate->currentstate = state;
+            return current->nextstate;
+        }
+        current = current->nextstate;
     }
-    else if (nextstate != nullptr) {
-        return nextstate->addState(state);
+}
+
+// Function to delete nodes recursively
+void StateNode::deleteNode() {
+    while (nextstate != nullptr) {
+        StateNode* next = nextstate;
+        nextstate = nextstate->nextstate; // Move to the next node before deleting
+        delete next;
     }
-    else {
-        StateNode *sn = new StateNode();
-        sn->currentstate = state;
-        nextstate = sn;
-        return sn;
-    }
+    delete currentstate; // Delete the state associated with this node
 }
