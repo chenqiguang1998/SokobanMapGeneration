@@ -6,10 +6,8 @@ class Map {
 public:
     Map();
     ~Map();
-    void drawMap(State * state);
+    void drawMap(const State* state) const; // Mark as const since it doesn't modify the object
+
 private:
-    int width;
-    int height;
-    int ** MapArray;
-    void drawTile(TileType type);
+    void drawTile(TileType type) const; // Mark as const since it doesn't modify the object
 };

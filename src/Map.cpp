@@ -1,46 +1,43 @@
 #include "pch.h"
 #include "Map.h"
 #include <iostream>
-using namespace std;
+#include <unordered_map>
 
+// Constructor
 Map::Map() {
-    // Linux 下不需要 _setmode 和 _O_U16TEXT 设置
+    // Initialization code if needed
 }
 
+// Destructor
 Map::~Map() {
+    // Cleanup code if needed
 }
 
-void Map::drawMap(State * state) {
-    for (int i = 0; i < state->height; i++) {
-        for (int j = 0; j < state->width; j++) {
-            this->drawTile(*(state->tiles + i * state->width + j));
+// Function to draw the map based on the state
+void Map::drawMap(const State* state) const {
+    for (int i = 0; i < state->height; ++i) {
+        for (int j = 0; j < state->width; ++j) {
+            drawTile(state->tiles[i * state->width + j]);
         }
         std::cout << "\n";
     }
 }
 
-void Map::drawTile(TileType type) {
-    switch (type) {
-    case Wall:
-        std::cout << "\033[31m▓\033[0m"; // 红色文字
-        break;
-    case Aid:
-        std::cout << "\033[41;37m⿴\033[0m"; // 背景红，前景白
-        break;
-    case Box:
-        std::cout << "\033[42;31m■\033[0m"; // 背景绿，前景红
-        break;
-    case BoxinAid:
-        std::cout << "\033[43;31m❐\033[0m"; // 背景黄，前景红
-        break;
-    case Character:
-        std::cout << "\033[44;33m☺\033[0m"; // 背景蓝，前景黄
-        break;
-    case CharacterinAid:
-        std::cout << "\033[45;32m☺a\033[0m"; // 背景紫，前景绿
-        break;
-    default:
-        std::cout << "  "; // 默认空格
-        break;
+// Function to draw a single tile based on its type
+void Map::drawTile(TileType type) const {
+    static const std::unordered_map<TileType, std::string> tileMap = {
+        { Wall, "\033[31m▓\033[0m" },
+        { Aid, "\033[41;37m⿴\033[0m" },
+        { Box, "\033[42;31m■\033[0m" },
+        { BoxinAid, "\033[43;31m❐\033[0m" },
+        { Character, "\033[44;33m☺\033[0m" },
+        { CharacterinAid, "\033[45;32m☺a\033[0m" }
+    };
+
+    auto it = tileMap.find(type);
+    if (it != tileMap.end()) {
+        std::cout << it->second;
+    } else {
+        std::cout << "  "; // Default space for unknown types
     }
 }
