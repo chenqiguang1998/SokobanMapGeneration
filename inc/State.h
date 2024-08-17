@@ -18,6 +18,8 @@ public:
     void charFloodFill();
     State* boxPushed(int i, int j, Direction d) const;
     bool ifDead() const;
+    TileType getTile(int x, int y) const;
+    void setTile(int x, int y, TileType type);
   friend class Map;
   friend class Solver;
 private:

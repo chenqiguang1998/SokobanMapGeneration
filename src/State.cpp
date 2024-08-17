@@ -236,3 +236,11 @@ bool State::ifTwoxTwo() const {
     }
     return false;
 }
+
+TileType State::getTile(int x, int y) const {
+    return tiles[x + y * width];
+}
+
+void State::setTile(int x, int y, TileType type) {
+    tiles[x + y * width] = type;
+}
