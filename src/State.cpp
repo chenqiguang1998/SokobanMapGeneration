@@ -2,16 +2,18 @@
 #include <algorithm> // For std::copy and std::equal
 #include <iostream>
 
-// Constructor using unique_ptr
+// Constructor using raw pointers
 State::State(int w, int h)
-    : width(w), height(h), tiles(std::unique_ptr<TileType[]>(new TileType[w * h])), cx(0), cy(0) {}
+    : width(w), height(h), tiles(new TileType[w * h]), cx(0), cy(0), charState{D_RIGHT, false, 0} {}
 
 // Destructor
-State::~State() = default; // Unique_ptr handles deletion
+State::~State() {
+    delete[] tiles;
+}
 
 // Set level
 void State::setLevel(TileType* tiles) {
-    std::copy(tiles, tiles + width * height, this->tiles.get());
+    std::copy(tiles, tiles + width * height, this->tiles);
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             if (tiles[i * width + j] == Character) {
@@ -25,15 +27,19 @@ void State::setLevel(TileType* tiles) {
 // Clone state
 State* State::clone() const {
     State* newState = new State(width, height);
-    std::copy(tiles.get(), tiles.get() + width * height, newState->tiles.get());
+    std::copy(tiles, tiles + width * height, newState->tiles);
     newState->cx = cx;
     newState->cy = cy;
+    newState->charState = charState;
     return newState;
 }
 
 // Check equality
 bool State::isEqual(const State* tempst) const {
-    return std::equal(tiles.get(), tiles.get() + width * height, tempst->tiles.get());
+    return std::equal(tiles, tiles + width * height, tempst->tiles) &&
+           charState.dir == tempst->charState.dir &&
+           charState.isMoving == tempst->charState.isMoving &&
+           charState.stepsMoved == tempst->charState.stepsMoved;
 }
 
 // Check win condition
@@ -49,21 +55,25 @@ bool State::ifWin() const {
 // Move up
 void State::up() {
     changLoc(cx - 1, cy, cx - 2, cy);
+    updateCharacterState(D_UP, true);
 }
 
 // Move down
 void State::down() {
     changLoc(cx + 1, cy, cx + 2, cy);
+    updateCharacterState(D_DOWN, true);
 }
 
 // Move left
 void State::left() {
     changLoc(cx, cy - 1, cx, cy - 2);
+    updateCharacterState(D_LEFT, true);
 }
 
 // Move right
 void State::right() {
     changLoc(cx, cy + 1, cx, cy + 2);
+    updateCharacterState(D_RIGHT, true);
 }
 
 // Change location
@@ -118,10 +128,10 @@ void State::charFloodFill() {
         for (int i = 1; i < height - 1; ++i) {
             for (int j = 1; j < width - 1; ++j) {
                 if (tiles[i * width + j] == Character || tiles[i * width + j] == CharacterinAid) {
-                    ifChange |= stepOn(tiles.get(), i - 1, j);
-                    ifChange |= stepOn(tiles.get(), i + 1, j);
-                    ifChange |= stepOn(tiles.get(), i, j - 1);
-                    ifChange |= stepOn(tiles.get(), i, j + 1);
+                    ifChange |= stepOn(tiles, i - 1, j);
+                    ifChange |= stepOn(tiles, i + 1, j);
+                    ifChange |= stepOn(tiles, i, j - 1);
+                    ifChange |= stepOn(tiles, i, j + 1);
                 }
             }
         }
@@ -212,24 +222,14 @@ bool State::ifWallCorner() const {
     return false;
 }
 
-// Check for 2x2 box pattern
+// Check for 2x2 block of boxes
 bool State::ifTwoxTwo() const {
-    for (int i = 0; i < height - 1; ++i) {
-        for (int j = 0; j < width - 1; ++j) {
-            int Boxnum = 0;
-            int Wallnum = 0;
-            int BoxinAidnum = 0;
-            for (int ii = 0; ii < 2; ++ii) {
-                for (int jj = 0; jj < 2; ++jj) {
-                    switch (tiles[(i + ii) * width + j + jj]) {
-                        case Box: Boxnum++; break;
-                        case Wall: Wallnum++; break;
-                        case BoxinAid: BoxinAidnum++; break;
-                        default: break;
-                    }
-                }
-            }
-            if ((Boxnum + Wallnum + BoxinAidnum == 4) && Boxnum > 0) {
+    for (int i = 1; i < height - 1; ++i) {
+        for (int j = 1; j < width - 1; ++j) {
+            if ((tiles[i * width + j] == BoxinAid || tiles[i * width + j] == Box) &&
+                (tiles[i * width + j + 1] == BoxinAid || tiles[i * width + j + 1] == Box) &&
+                (tiles[(i + 1) * width + j] == BoxinAid || tiles[(i + 1) * width + j] == Box) &&
+                (tiles[(i + 1) * width + j + 1] == BoxinAid || tiles[(i + 1) * width + j + 1] == Box)) {
                 return true;
             }
         }
@@ -237,10 +237,114 @@ bool State::ifTwoxTwo() const {
     return false;
 }
 
+// Set level from vector
+void State::setLevel(std::vector<TileType>& newTiles) {
+    if (newTiles.size() == static_cast<size_t>(width * height)) {
+        std::copy(newTiles.begin(), newTiles.end(), tiles);
+        for (int i = 0; i < height; ++i) {
+            for (int j = 0; j < width; ++j) {
+                if (tiles[i * width + j] == Character) {
+                    cx = j;
+                    cy = i;
+                }
+            }
+        }
+    } else {
+        std::cerr << "Error: Incorrect tile array size!" << std::endl;
+    }
+}
+
+// Get character position
+sf::Vector2i State::getCharacterPosition() const {
+    return sf::Vector2i(cx, cy);
+}
+
+// Set character state
+void State::setCharacterState(const CharacterState& state) {
+    charState = state;
+}
+
+// Update character state
+void State::updateCharacterState(Direction direction, bool isMoving) {
+    charState.dir = direction;
+    charState.isMoving = isMoving;
+    if (isMoving) {
+        charState.stepsMoved++;
+    }
+}
+
+// Get tile value
 TileType State::getTile(int x, int y) const {
     return tiles[x + y * width];
 }
 
+// Draw character
+void State::drawCharacter(sf::RenderWindow& window, sf::Texture& characterTexture) {
+    sf::Sprite characterSprite(characterTexture);
+
+    characterSprite.setPosition(cx * TILE_SIZE, cy * TILE_SIZE);
+
+    if (charState.isMoving) {
+        // Set moving image
+        // characterSprite.setTextureRect(...); // 根据 charState.dir 设置纹理区域
+    } else {
+        // Set stationary image
+        // characterSprite.setTextureRect(...); // 根据 charState.dir 设置纹理区域
+    }
+
+    window.draw(characterSprite);
+}
+
+// Set tile value
 void State::setTile(int x, int y, TileType type) {
     tiles[x + y * width] = type;
+}
+
+void State::moveCharacter(int dx, int dy) {
+    // 计算新的角色坐标
+    int newX = cx + dx;
+    int newY = cy + dy;
+
+    // 检查新的坐标是否在地图范围内
+    if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+        cx = newX;
+        cy = newY;
+
+        Direction direction;
+        if (dx > 0) direction = D_RIGHT;
+        else if (dx < 0) direction = D_LEFT;
+        else if (dy > 0) direction = D_DOWN;
+        else direction = D_UP;
+
+        updateCharacterState(direction, true);
+    }
+}
+
+void State::moveCharacter(Direction dir) {
+    int dx = 0, dy = 0;
+
+    // 根据方向设置 dx 和 dy
+    switch (dir) {
+        case D_UP:
+            dx = -1;
+            dy = 0;
+            break;
+        case D_DOWN:
+            dx = 1;
+            dy = 0;
+            break;
+        case D_LEFT:
+            dx = 0;
+            dy = -1;
+            break;
+        case D_RIGHT:
+            dx = 0;
+            dy = 1;
+            break;
+        default:
+            return; // 如果方向无效，则不执行任何操作
+    }
+
+    // 调用原来的 moveCharacter 函数来移动角色
+    moveCharacter(dx, dy);
 }

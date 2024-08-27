@@ -59,7 +59,8 @@ void testMap() {
             return;
         }
 
-        map.drawMapWithTexture(renderTexture, state, texture);
+        // 使用 columnMajor 参数调用 drawMapWithTexture
+        map.drawMapWithTexture(renderTexture, state, texture, true);
 
         sf::Sprite sprite(renderTexture.getTexture());
         window.clear();
@@ -83,7 +84,6 @@ void testMap() {
 
     delete state; // Clean up the allocated State object
 }
-
 
 int main() {
     std::cout << "欢迎使用地图测试程序！" << std::endl;

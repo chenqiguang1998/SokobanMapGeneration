@@ -1,8 +1,70 @@
 #include "SpriteLoader.h"
-#include <tinyxml2.h>
+#include "tinyxml2.h"
 #include <iostream>
 #include <unistd.h> // For getcwd
-#include <cstring>  // For strlen
+
+// 将纹理类型映射到字符串
+std::string SpriteLoader::textureTypeToString(TextureType type) const {
+    switch (type) {
+        case TextureType::CHARACTER1: return "Character1.png";
+        case TextureType::CHARACTER10: return "Character10.png";
+        case TextureType::CHARACTER2: return "Character2.png";
+        case TextureType::CHARACTER3: return "Character3.png";
+        case TextureType::CHARACTER4: return "Character4.png";
+        case TextureType::CHARACTER5: return "Character5.png";
+        case TextureType::CHARACTER6: return "Character6.png";
+        case TextureType::CHARACTER7: return "Character7.png";
+        case TextureType::CHARACTER8: return "Character8.png";
+        case TextureType::CHARACTER9: return "Character9.png";
+
+        case TextureType::CRATE_DARK_BEIGE: return "CrateDark_Beige.png";
+        case TextureType::CRATE_DARK_BLACK: return "CrateDark_Black.png";
+        case TextureType::CRATE_DARK_BLUE: return "CrateDark_Blue.png";
+        case TextureType::CRATE_DARK_BROWN: return "CrateDark_Brown.png";
+        case TextureType::CRATE_DARK_GRAY: return "CrateDark_Gray.png";
+        case TextureType::CRATE_DARK_PURPLE: return "CrateDark_Purple.png";
+        case TextureType::CRATE_DARK_RED: return "CrateDark_Red.png";
+        case TextureType::CRATE_DARK_YELLOW: return "CrateDark_Yellow.png";
+
+        case TextureType::CRATE_BEIGE: return "Crate_Beige.png";
+        case TextureType::CRATE_BLACK: return "Crate_Black.png";
+        case TextureType::CRATE_BLUE: return "Crate_Blue.png";
+        case TextureType::CRATE_BROWN: return "Crate_Brown.png";
+        case TextureType::CRATE_GRAY: return "Crate_Gray.png";
+        case TextureType::CRATE_PURPLE: return "Crate_Purple.png";
+        case TextureType::CRATE_RED: return "Crate_Red.png";
+        case TextureType::CRATE_YELLOW: return "Crate_Yellow.png";
+
+        case TextureType::ENDPOINT_BEIGE: return "EndPoint_Beige.png";
+        case TextureType::ENDPOINT_BLACK: return "EndPoint_Black.png";
+        case TextureType::ENDPOINT_BLUE: return "EndPoint_Blue.png";
+        case TextureType::ENDPOINT_BROWN: return "EndPoint_Brown.png";
+        case TextureType::ENDPOINT_GRAY: return "EndPoint_Gray.png";
+        case TextureType::ENDPOINT_PURPLE: return "EndPoint_Purple.png";
+        case TextureType::ENDPOINT_RED: return "EndPoint_Red.png";
+        case TextureType::ENDPOINT_YELLOW: return "EndPoint_Yellow.png";
+
+        case TextureType::GROUND_GRAVEL_CONCRETE: return "GroundGravel_Concrete.png";
+        case TextureType::GROUND_GRAVEL_DIRT: return "GroundGravel_Dirt.png";
+        case TextureType::GROUND_GRAVEL_GRASS: return "GroundGravel_Grass.png";
+        case TextureType::GROUND_GRAVEL_SAND: return "GroundGravel_Sand.png";
+        case TextureType::GROUND_CONCRETE: return "Ground_Concrete.png";
+        case TextureType::GROUND_DIRT: return "Ground_Dirt.png";
+        case TextureType::GROUND_GRASS: return "Ground_Grass.png";
+        case TextureType::GROUND_SAND: return "Ground_Sand.png";
+
+        case TextureType::WALL_ROUND_BEIGE: return "WallRound_Beige.png";
+        case TextureType::WALL_ROUND_BLACK: return "WallRound_Black.png";
+        case TextureType::WALL_ROUND_BROWN: return "WallRound_Brown.png";
+        case TextureType::WALL_ROUND_GRAY: return "WallRound_Gray.png";
+        case TextureType::WALL_BEIGE: return "Wall_Beige.png";
+        case TextureType::WALL_BLACK: return "Wall_Black.png";
+        case TextureType::WALL_BROWN: return "Wall_Brown.png";
+        case TextureType::WALL_GRAY: return "Wall_Gray.png";
+
+        default: return "Unknown.png";
+    }
+}
 
 SpriteLoader::SpriteLoader(const std::string& xmlPath, const std::string& imagePath)
     : xmlPath(xmlPath), imagePath(imagePath) {}
@@ -77,13 +139,37 @@ bool SpriteLoader::loadSprites(const std::string& xmlPath) {
     return true;
 }
 
-void SpriteLoader::drawSprite(const std::string& name, sf::RenderWindow& window, const sf::Vector2f& position) {
-    std::map<std::string, sf::Sprite>::const_iterator it = sprites.find(name);
+void SpriteLoader::drawSprite(TextureType type, sf::RenderWindow& window, const sf::Vector2f& position) {
+    std::string textureName = textureTypeToString(type);
+    auto it = sprites.find(textureName);
     if (it != sprites.end()) {
         sf::Sprite sprite(it->second);
         sprite.setPosition(position);
         window.draw(sprite);
     } else {
-        std::cerr << "Sprite " << name << " not found" << std::endl;
+        std::cerr << "Sprite " << textureName << " not found" << std::endl;
     }
 }
+
+void SpriteLoader::drawAllSprites(sf::RenderWindow& window) {
+    for (const auto& pair : sprites) {
+        sf::Sprite sprite = pair.second;
+        window.draw(sprite);
+    }
+}
+
+void SpriteLoader::drawSpritesInRegion(sf::RenderWindow& window, const sf::FloatRect& region) {
+    for (const auto& pair : sprites) {
+        sf::Sprite sprite = pair.second;
+        sf::FloatRect spriteBounds = sprite.getGlobalBounds();
+
+        if (region.intersects(spriteBounds)) {
+            window.draw(sprite);
+        }
+    }
+}
+
+std::string SpriteLoader::getTextureName(TextureType type) const {
+    return textureTypeToString(type);
+}
+

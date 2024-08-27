@@ -15,3 +15,5 @@ enum Direction {
 	D_LEFT,
 	D_RIGHT
 };
+
+#define TILE_SIZE 64
