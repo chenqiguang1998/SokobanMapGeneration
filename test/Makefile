@@ -20,7 +20,8 @@ STATE_SRC = $(SRC_DIR)/State.cpp
 TEXTURE_ATLAS_SRC = $(TEST_DIR)/TextureAtlasParser.cpp
 CHARACTER_TEXTURE_SRC = $(TEST_DIR)/TestCharacterTexture.cpp
 SPRITE_LOADER_SRC = $(SRC_DIR)/SpriteLoader.cpp
-SPRITE_LOADER_TEST_SRC = $(TEST_DIR)/SpriteLoaderTest.cpp
+GENERATE_LEVEL_SRC = $(SRC_DIR)/GenerateLevel.cpp
+TEST_GENERATE_LEVEL_SRC = $(TEST_DIR)/TestGenerateLevel.cpp
 
 # Object files (store in OBJ_DIR)
 MAP_OBJ = $(OBJ_DIR)/Map.o
@@ -28,24 +29,18 @@ STATE_OBJ = $(OBJ_DIR)/State.o
 TEXTURE_ATLAS_OBJ = $(OBJ_DIR)/TextureAtlasParser.o
 CHARACTER_TEXTURE_OBJ = $(OBJ_DIR)/TestCharacterTexture.o
 SPRITE_LOADER_OBJ = $(OBJ_DIR)/SpriteLoader.o
-SPRITE_LOADER_TEST_OBJ = $(OBJ_DIR)/SpriteLoaderTest.o
-
-# Test source files
-TEST_MAP_SRC = $(TEST_DIR)/TestMap.cpp
-TEST_TEXTURE_ATLAS_SRC = $(TEST_DIR)/TestTextureAtlasParser.cpp
-
-# Test object files (store in OBJ_DIR)
-TEST_MAP_OBJ = $(OBJ_DIR)/TestMap.o
-TEST_TEXTURE_ATLAS_OBJ = $(OBJ_DIR)/TestTextureAtlasParser.o
+GENERATE_LEVEL_OBJ = $(OBJ_DIR)/GenerateLevel.o
+TEST_GENERATE_LEVEL_OBJ = $(OBJ_DIR)/TestGenerateLevel.o
 
 # Executables (store in BUILD_DIR)
 EXEC_MAP = $(BUILD_DIR)/TestMap
 EXEC_TEXTURE_ATLAS = $(BUILD_DIR)/TestTextureAtlasParser
 EXEC_CHARACTER_TEXTURE = $(BUILD_DIR)/TestCharacterTexture
 EXEC_SPRITE_LOADER_TEST = $(BUILD_DIR)/SpriteLoaderTest
+EXEC_GENERATE_LEVEL = $(BUILD_DIR)/TestGenerateLevel
 
 # Targets
-all: $(EXEC_MAP) $(EXEC_TEXTURE_ATLAS) $(EXEC_CHARACTER_TEXTURE) $(EXEC_SPRITE_LOADER_TEST)
+all: $(EXEC_MAP) $(EXEC_TEXTURE_ATLAS) $(EXEC_CHARACTER_TEXTURE) $(EXEC_SPRITE_LOADER_TEST) $(EXEC_GENERATE_LEVEL)
 	@echo "All targets have been compiled."
 
 map: $(EXEC_MAP)
@@ -59,6 +54,9 @@ character-texture: $(EXEC_CHARACTER_TEXTURE)
 
 sprite-loader-test: $(EXEC_SPRITE_LOADER_TEST)
 	@echo "SpriteLoaderTest executable has been compiled."
+
+generate-level: $(EXEC_GENERATE_LEVEL)
+	@echo "TestGenerateLevel executable has been compiled."
 
 # Rule to build Map and State object files
 $(MAP_OBJ): $(MAP_SRC) $(INC_DIR)/Map.h $(INC_DIR)/State.h | $(OBJ_DIR)
@@ -84,40 +82,50 @@ $(SPRITE_LOADER_OBJ): $(SPRITE_LOADER_SRC) $(INC_DIR)/SpriteLoader.h | $(OBJ_DIR
 	@echo "Compiling SpriteLoader..."
 	$(CXX) $(CXXFLAGS) -c $(SPRITE_LOADER_SRC) -o $(SPRITE_LOADER_OBJ)
 
-# Rule to build SpriteLoaderTest object file
-$(SPRITE_LOADER_TEST_OBJ): $(SPRITE_LOADER_TEST_SRC) | $(OBJ_DIR)
-	@echo "Compiling SpriteLoaderTest..."
-	$(CXX) $(CXXFLAGS) -c $(SPRITE_LOADER_TEST_SRC) -o $(SPRITE_LOADER_TEST_OBJ)
+# Rule to build GenerateLevel object file
+$(GENERATE_LEVEL_OBJ): $(GENERATE_LEVEL_SRC) $(INC_DIR)/GenerateLevel.h | $(OBJ_DIR)
+	@echo "Compiling GenerateLevel..."
+	$(CXX) $(CXXFLAGS) -c $(GENERATE_LEVEL_SRC) -o $(GENERATE_LEVEL_OBJ)
+
+# Rule to build TestGenerateLevel object file
+$(TEST_GENERATE_LEVEL_OBJ): $(TEST_GENERATE_LEVEL_SRC) | $(OBJ_DIR)
+	@echo "Compiling TestGenerateLevel..."
+	$(CXX) $(CXXFLAGS) -c $(TEST_GENERATE_LEVEL_SRC) -o $(TEST_GENERATE_LEVEL_OBJ)
 
 # Rule to build Map test executable
-$(EXEC_MAP): $(TEST_MAP_OBJ) $(MAP_OBJ) $(STATE_OBJ) $(SPRITE_LOADER_OBJ) | $(BUILD_DIR)
+$(EXEC_MAP): $(OBJ_DIR)/TestMap.o $(MAP_OBJ) $(STATE_OBJ) $(SPRITE_LOADER_OBJ) | $(BUILD_DIR)
 	@echo "Linking Map test executable..."
-	$(CXX) $(CXXFLAGS) -o $@ $(TEST_MAP_OBJ) $(MAP_OBJ) $(STATE_OBJ) $(SPRITE_LOADER_OBJ) $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
 
 # Rule to build TextureAtlas test executable
-$(EXEC_TEXTURE_ATLAS): $(TEST_TEXTURE_ATLAS_OBJ) $(TEXTURE_ATLAS_OBJ) | $(BUILD_DIR)
+$(EXEC_TEXTURE_ATLAS): $(OBJ_DIR)/TestTextureAtlasParser.o $(TEXTURE_ATLAS_OBJ) | $(BUILD_DIR)
 	@echo "Linking TextureAtlas test executable..."
-	$(CXX) $(CXXFLAGS) -o $@ $(TEST_TEXTURE_ATLAS_OBJ) $(TEXTURE_ATLAS_OBJ) $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
 
 # Rule to build TestCharacterTexture test executable
-$(EXEC_CHARACTER_TEXTURE): $(TEST_CHARACTER_TEXTURE_OBJ) $(CHARACTER_TEXTURE_OBJ) $(MAP_OBJ) $(STATE_OBJ) $(TEXTURE_ATLAS_OBJ) $(SPRITE_LOADER_OBJ) | $(BUILD_DIR)
+$(EXEC_CHARACTER_TEXTURE): $(OBJ_DIR)/TestCharacterTexture.o $(CHARACTER_TEXTURE_OBJ) $(MAP_OBJ) $(STATE_OBJ) $(TEXTURE_ATLAS_OBJ) $(SPRITE_LOADER_OBJ) | $(BUILD_DIR)
 	@echo "Linking TestCharacterTexture test executable..."
-	$(CXX) $(CXXFLAGS) -o $@ $(TEST_CHARACTER_TEXTURE_OBJ) $(CHARACTER_TEXTURE_OBJ) $(MAP_OBJ) $(STATE_OBJ) $(TEXTURE_ATLAS_OBJ) $(SPRITE_LOADER_OBJ) $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
 
 # Rule to build SpriteLoaderTest executable
-$(EXEC_SPRITE_LOADER_TEST): $(SPRITE_LOADER_TEST_OBJ) $(SPRITE_LOADER_OBJ) | $(BUILD_DIR)
+$(EXEC_SPRITE_LOADER_TEST): $(OBJ_DIR)/SpriteLoaderTest.o $(SPRITE_LOADER_OBJ) | $(BUILD_DIR)
 	@echo "Linking SpriteLoaderTest executable..."
-	$(CXX) $(CXXFLAGS) -o $@ $(SPRITE_LOADER_TEST_OBJ) $(SPRITE_LOADER_OBJ) $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
+
+# Rule to build TestGenerateLevel executable
+$(EXEC_GENERATE_LEVEL): $(TEST_GENERATE_LEVEL_OBJ) $(GENERATE_LEVEL_OBJ) | $(BUILD_DIR)
+	@echo "Linking TestGenerateLevel executable..."
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(SFML_LIBS) $(BOOST_LIBS) $(TINYXML2_LIBS)
 
 # Rule to build TestMap object file
-$(TEST_MAP_OBJ): $(TEST_MAP_SRC) $(INC_DIR)/Map.h $(INC_DIR)/State.h | $(OBJ_DIR)
+$(OBJ_DIR)/TestMap.o: $(TEST_DIR)/TestMap.cpp $(INC_DIR)/Map.h $(INC_DIR)/State.h | $(OBJ_DIR)
 	@echo "Compiling TestMap..."
-	$(CXX) $(CXXFLAGS) -c $(TEST_MAP_SRC) -o $(TEST_MAP_OBJ)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Rule to build TestTextureAtlasParser object file
-$(TEST_TEXTURE_ATLAS_OBJ): $(TEST_TEXTURE_ATLAS_SRC) $(INC_DIR)/TextureAtlasParser.h | $(OBJ_DIR)
+$(OBJ_DIR)/TestTextureAtlasParser.o: $(TEST_DIR)/TestTextureAtlasParser.cpp $(INC_DIR)/TextureAtlasParser.h | $(OBJ_DIR)
 	@echo "Compiling TestTextureAtlasParser..."
-	$(CXX) $(CXXFLAGS) -c $(TEST_TEXTURE_ATLAS_SRC) -o $(TEST_TEXTURE_ATLAS_OBJ)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Create obj and build directories if they don't exist
 $(OBJ_DIR):
@@ -151,4 +159,9 @@ run-sprite-loader-test: $(EXEC_SPRITE_LOADER_TEST)
 	@echo "Running SpriteLoaderTest executable..."
 	./$(EXEC_SPRITE_LOADER_TEST)
 
-.PHONY: all map texture-atlas character-texture sprite-loader-test clean run-map run-texture-atlas run-character-texture run-sprite-loader-test
+# Run the TestGenerateLevel executable
+run-generate-level: $(EXEC_GENERATE_LEVEL)
+	@echo "Running TestGenerateLevel executable..."
+	./$(EXEC_GENERATE_LEVEL)
+
+.PHONY: all map texture-atlas character-texture sprite-loader-test generate-level clean run-map run-texture-atlas run-character-texture run-sprite-loader-test run-generate-level
