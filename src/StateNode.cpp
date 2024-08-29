@@ -1,7 +1,7 @@
 #include "StateNode.h"
 
 // Constructor
-StateNode::StateNode() : currentstate(nullptr), nextstate(nullptr), parentstate(nullptr), depth(0) {}
+//StateNode::StateNode() : currentstate(nullptr), nextstate(nullptr), parentstate(nullptr), depth(0) {}
 
 // Destructor
 StateNode::~StateNode() {
@@ -37,11 +37,13 @@ StateNode* StateNode::addState(State* state) {
 }
 
 // Function to delete nodes recursively
+// 递归删除节点
 void StateNode::deleteNode() {
-    while (nextstate != nullptr) {
-        StateNode* next = nextstate;
-        nextstate = nextstate->nextstate; // Move to the next node before deleting
-        delete next;
+    if (nextstate != nullptr) {
+        nextstate->deleteNode(); // 递归删除下一个节点
+        delete nextstate;
+        nextstate = nullptr; // 确保删除后指针为 null
     }
-    delete currentstate; // Delete the state associated with this node
+    delete currentstate; // 删除与当前节点关联的状态
+    currentstate = nullptr; // 确保删除后指针为 null
 }

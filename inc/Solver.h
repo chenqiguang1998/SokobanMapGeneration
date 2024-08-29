@@ -5,6 +5,8 @@
 #include "Map.h"
 #include <list>
 #include <memory>
+#include <set>
+#include <queue>
 
 class Solver {
 public:
@@ -16,6 +18,9 @@ public:
 
     // 自动求解方法
     int run();
+
+    // A* 搜索方法
+    int runAStar();
 
     // 检查状态是否已存在
     bool ifContain(State* state) const;
@@ -33,6 +38,9 @@ public:
 private:
     // 计算状态的唯一编码
     int calculateCode(State* state) const;
+
+    // 启发式函数：计算曼哈顿距离的示例
+    int heuristic(State* state) const;
 
     int width; // 地图宽度
     int height; // 地图高度
